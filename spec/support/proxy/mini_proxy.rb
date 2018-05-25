@@ -64,7 +64,7 @@ module MiniProxy
 
     def call(env)
       rack_request = ::Rack::Request.new(env)
-      rack_response = ::Rack::Response.new(["Not Found"], 404, { "Content-Type" => "text/html" }) # Default response: 404, not found
+      rack_response = ::Rack::Response.new([], 400) # Default response: 400 (Bad Request)
 
       # Match stubbed request
       if (request = @requests.detect { |request| request.match?(rack_request) })
