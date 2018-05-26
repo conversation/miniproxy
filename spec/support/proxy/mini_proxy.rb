@@ -82,8 +82,20 @@ module MiniProxy
 
       # Fetch allowed hosts
       if rack_request.host.match?(MiniProxy::ALLOWED_HOSTS)
-        response = HTTP.request(rack_request.request_method, rack_request.url)
+        # - [x] Handle form submits
+        # - [ ] Handle file uploads
+        options = case rack_request.request_method
+        when "POST"
+          { body: rack_request.params.to_query }
+        else
+          {}
+        end
 
+        response = HTTP
+          .cookies(rack_request.cookies)
+          .request(rack_request.request_method, rack_request.url, options)
+
+        # Merge cookies that were set on the proxy server response
         response.cookies.each do |cookie|
           rack_response.set_cookie(cookie.name, cookie.value)
         end
