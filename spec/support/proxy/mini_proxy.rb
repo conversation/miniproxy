@@ -1,5 +1,4 @@
-require "http"
-require "rack"
+require "webrick/httpproxy"
 
 module MiniProxy
   ALLOWED_HOSTS = Regexp.union("127.0.0.1", "localhost")
@@ -19,9 +18,9 @@ module MiniProxy
         @url = url
       end
 
-      # @param [Rack::Request] rack_request
-      def match?(rack_request)
-        rack_request.request_method == @method && rack_request.url.match?(@url)
+      # @param [WEBrick::HTTPRequest] http_request
+      def match?(http_request)
+        http_request.request_method == @method && http_request.unparsed_uri.match?(@url)
       end
     end
 
@@ -45,7 +44,7 @@ module MiniProxy
     end
   end
 
-  class Rack
+  class ContentHandler
     attr_accessor :requests
 
     def initialize
@@ -53,6 +52,7 @@ module MiniProxy
     end
 
     def stack_request(method:, url:, response:)
+      # TODO: break apart request/response objects
       response = MiniProxy::Stub::Response.new(headers: response[:headers], body: response[:body])
       request = MiniProxy::Stub::Request.new(method: method, url: url, response: response)
       @requests << request
@@ -62,58 +62,33 @@ module MiniProxy
       @requests = []
     end
 
-    def call(env)
-      rack_request = ::Rack::Request.new(env)
-      rack_response = ::Rack::Response.new([], 400) # Default response: 400 (Bad Request)
-
-      # Match stubbed request
-      if (request = @requests.detect { |request| request.match?(rack_request) })
+    def call(req, res)
+      if (request = @requests.detect { |request| request.match?(req) })
         response = request.response
 
-        response.headers.each do |key, value|
-          rack_response.set_header(key, value)
-        end
+        res.status = response.code
+        response.headers.each { |key, value| res[key] = value }
+        res.body = response.body
+      end
+    end
+  end
 
-        rack_response.status = response.code
-        rack_response.body = [response.to_s]
-
-        return rack_response.finish
+  class ProxyServer < WEBrick::HTTPProxyServer
+    # @param [WEBrick::HTTPRequest] req
+    # @param [WEBrick::HTTPResponse] res
+    def service(req, res)
+      # Default response: 400 (Bad Request)
+      unless req.unparsed_uri.match?(MiniProxy::ALLOWED_HOSTS)
+        res.status = 400
+        return ""
       end
 
-      # Fetch allowed hosts
-      if rack_request.host.match?(MiniProxy::ALLOWED_HOSTS)
-        # - [x] Handle form submits
-        # - [ ] Handle file uploads
-        options = case rack_request.request_method
-        when "POST"
-          { body: rack_request.params.to_query }
-        else
-          {}
-        end
-
-        response = HTTP
-          .cookies(rack_request.cookies)
-          .request(rack_request.request_method, rack_request.url, options)
-
-        # Merge cookies that were set on the proxy server response
-        response.cookies.each do |cookie|
-          rack_response.set_cookie(cookie.name, cookie.value)
-        end
-
-        response.headers.each do |key, value|
-          rack_response.set_header(key, value)
-        end
-
-        rack_response.status = response.code
-        rack_response.body = [response.to_s]
-      end
-
-      rack_response.finish
+      super(req, res)
     end
   end
 
   class Server
-    attr_reader :mini_proxy
+    attr_reader :handler
 
     private_class_method :new
 
@@ -122,20 +97,18 @@ module MiniProxy
     end
 
     def self.stub_request(method:, url:, response: {})
-      @server.mini_proxy.stack_request(method: method, url: url, response: response)
+      @server.handler.stack_request(method: method, url: url, response: response)
     end
 
     def self.reset
-      @server.mini_proxy.empty_request_stack
+      @server.handler.empty_request_stack
     end
 
     def initialize
-      @mini_proxy = MiniProxy::Rack.new
+      @handler = MiniProxy::ContentHandler.new
       @thread = Thread.new do
-        ::Rack::Handler::WEBrick.run(@mini_proxy, {
-          Host: ENV.fetch("MINI_PROXY_HOST", "127.0.0.1"),
-          Port: ENV.fetch("MINI_PROXY_PORT", "8888"),
-        })
+        proxy = MiniProxy::ProxyServer.new(Port: MiniProxy::SERVER_PORT, ProxyContentHandler: @handler)
+        proxy.start
       end
     end
   end
