@@ -142,12 +142,16 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
 
     attr_reader :proxy
 
-    def self.stub_request(method:, url:, response: {})
-      instance.proxy.stack_request(method: method, url: url, response: response)
-    end
-
     def self.reset
       instance.proxy.empty_request_stack
+    end
+
+    def self.start
+      instance
+    end
+
+    def self.stub_request(method:, url:, response: {})
+      instance.proxy.stack_request(method: method, url: url, response: response)
     end
 
     def initialize
@@ -158,5 +162,6 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
 end
 
 RSpec.configure do |config|
-  config.after { puts MiniProxy::Server.reset }
+  config.before(:suite) { MiniProxy::Server.start }
+  config.after(:each) { puts MiniProxy::Server.reset }
 end
