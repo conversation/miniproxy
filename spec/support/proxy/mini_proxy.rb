@@ -1,10 +1,9 @@
 require "singleton"
+require "timeout"
 require "webrick/httpproxy"
 
 module MiniProxy
   ALLOWED_HOSTS = Regexp.union("127.0.0.1", "localhost")
-  SERVER_HOST = ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
-  SERVER_PORT = ENV.fetch("MINI_PROXY_PORT", "8888")
 
   module Stub
     class Request
@@ -138,9 +137,11 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
   end
 
   class Server
+    SERVER_DYNAMIC_PORT_RANGE = (12345..32768).to_a.freeze
+
     include Singleton
 
-    attr_reader :proxy
+    attr_reader :proxy, :port
 
     def self.reset
       instance.proxy.empty_request_stack
@@ -150,13 +151,28 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
       instance
     end
 
+    def self.port
+      instance.port
+    end
+
+    def self.host
+      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
+    end
+
     def self.stub_request(method:, url:, response: {})
       instance.proxy.stack_request(method: method, url: url, response: response)
     end
 
     def initialize
-      @proxy = MiniProxy::ProxyServer.new(Port: MiniProxy::SERVER_PORT)
-      @thread = Thread.new { @proxy.start }
+      Timeout::timeout(10) do
+        begin
+          @port = ENV["MINI_PROXY_PORT"] || SERVER_DYNAMIC_PORT_RANGE.sample
+          @proxy = MiniProxy::ProxyServer.new(Port: @port)
+          @thread = Thread.new { @proxy.start }
+        rescue Errno::EADDRINUSE
+          retry
+        end
+      end
     end
   end
 end
