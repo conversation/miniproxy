@@ -1,6 +1,7 @@
 require "singleton"
 require "timeout"
 require "webrick/httpproxy"
+require "webrick/https" # THIS IS KEY
 
 module MiniProxy
   ALLOWED_HOSTS = Regexp.union("127.0.0.1", "localhost")
@@ -52,76 +53,22 @@ module MiniProxy
       super(config, default)
     end
 
-    # @param [WEBrick::HTTPRequest] req
-    # @param [WEBrick::HTTPResponse] res
+    # if we receive an SSL request, hand it off to our fake server, which is ready
+    # and waiting to respond with mocks!
+    def do_CONNECT(req, res)
+      req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
+      super(req, res)
+    end
+
     def service(req, res)
-      # if req.unparsed_uri.match?("theconversation-temp-test")
-      #   binding.pry
-      #   temp = super(req, res)
-      #   binding.pry
-      # end
-
-      # TODO: FAILING? WHAT TO RETURN?
       if (request = @requests.detect { |request| request.match?(req) })
-        if req.request_method == "CONNECT"
-          ua = Thread.current[:WEBrickSocket]  # User-Agent
-          # res.status = WEBrick::HTTPStatus::RC_OK
-          # res.send_response(ua)
-          # res.body = "CONNECT HTTP/1.0" + WEBrick::CRLF + WEBrick::CRLF
-          #
-          # # Should clear request-line not to send the response twice.
-          # # see: HTTPServer#run
-          # req.parse(NullReader) rescue nil
-          #
-          # # binding.pry
-          #
-
-
-          # do_CONNECT(req, res)
-          # "HTTP/1.1 200 Connection established\r\n\r\n"
-          # binding.pry
-          #
-
-          # binding.pry
-
-          temp = <<-STRING
-GET /sockjs-node/936/rnubhg5k/websocket HTTP/1.1
-Host: localhost:8080
-Connection: Upgrade
-Pragma: no-cache
-Cache-Control: no-cache
-Upgrade: websocket
-Origin: http://127.0.0.1:56091
-Sec-WebSocket-Version: 13
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36
-Accept-Encoding: gzip, deflate, br
-Accept-Language: en-US,en;q=0.9
-Sec-WebSocket-Key: RAR+YMI1nh9EbeIT/Vyf/w==
-Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
-          STRING
-          ua.syswrite(temp)
-          res.status = 200
-          res.send_response(ua)
-
-          return
-        end
-
         response = request.response
-
         res.status = response.code
         response.headers.each { |key, value| res[key] = value }
         res.body = response.body
-
-        return
+      else
+        super(req, res)
       end
-
-      # Default response: 400 (Bad Request)
-      unless req.unparsed_uri.match?(MiniProxy::ALLOWED_HOSTS)
-        res.status = 400
-        return
-      end
-
-      super(req, res)
     end
 
     def stack_request(method:, url:, response:)
@@ -133,6 +80,15 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
 
     def empty_request_stack
       @requests = []
+    end
+  end
+
+  class FakeServer < WEBrick::HTTPProxyServer
+    # TODO: respond with mocks?
+    def service(req, res)
+      res.status = 200
+      res.body = ""
+      STDOUT.puts "WARN: request to #{req.host}#{req.path} not mocked"
     end
   end
 
@@ -164,10 +120,34 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
     end
 
     def initialize
+      ssl = Fauthentic.generate
+
       Timeout::timeout(10) do
         begin
+          @fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
+          @fake_server = FakeServer.new(
+            Port: @fake_server_port,
+            Logger: WEBrick::Log.new(nil, 0), # silence logging
+            AccessLog: [], # silence logging
+            SSLEnable: true,
+            SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
+            SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
+            SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
+            SSLCertName: [["CN", WEBrick::Utils::getservername]],
+          )
+          @thread = Thread.new { @fake_server.start }
+        rescue
+          retry
+        end
+
+        begin
           @port = ENV["MINI_PROXY_PORT"] || SERVER_DYNAMIC_PORT_RANGE.sample
-          @proxy = MiniProxy::ProxyServer.new(Port: @port)
+          @proxy = MiniProxy::ProxyServer.new(
+            Port: @port,
+            FakeServerPort: @fake_server_port,
+            Logger: WEBrick::Log.new(nil, 0), # silence logging
+            AccessLog: [], # silence logging
+          )
           @thread = Thread.new { @proxy.start }
         rescue Errno::EADDRINUSE
           retry
