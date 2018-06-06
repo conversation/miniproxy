@@ -7,6 +7,8 @@ module MiniProxy
   ALLOWED_HOSTS = Regexp.union("127.0.0.1", "localhost")
 
   module Stub
+    # MiniProxy stub request to match and stub external URLs with a stubbed response
+    #
     class Request
       attr_reader :response
 
@@ -25,6 +27,8 @@ module MiniProxy
       end
     end
 
+    # MiniProxy stub response, so stubbed requests can return a custom response
+    #
     class Response
       def initialize(headers:, body:)
         @body = body
@@ -45,6 +49,8 @@ module MiniProxy
     end
   end
 
+  # MiniProxy server, which boots a WEBrick proxy server
+  #
   class ProxyServer < WEBrick::HTTPProxyServer
     attr_accessor :requests
 
@@ -61,7 +67,7 @@ module MiniProxy
     end
 
     def service(req, res)
-      if (request = @requests.detect { |request| request.match?(req) })
+      if (request = @requests.detect { |mock_request| mock_request.match?(req) })
         response = request.response
         res.status = response.code
         response.headers.each { |key, value| res[key] = value }
@@ -83,7 +89,9 @@ module MiniProxy
     end
   end
 
-  class FakeServer < WEBrick::HTTPProxyServer
+  # MiniProxy fake SSL server, which receives relayed HTTPS requests from the ProxyServer
+  #
+  class FakeSSLServer < WEBrick::HTTPProxyServer
     # TODO: respond with mocks?
     def service(req, res)
       res.status = 200
@@ -92,6 +100,8 @@ module MiniProxy
     end
   end
 
+  # MiniProxy server singleton, used as a facade to boot the ProxyServer
+  #
   class Server
     SERVER_DYNAMIC_PORT_RANGE = (12345..32768).to_a.freeze
 
@@ -122,10 +132,10 @@ module MiniProxy
     def initialize
       ssl = Fauthentic.generate
 
-      Timeout::timeout(10) do
+      Timeout.timeout(10) do
         begin
           @fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
-          @fake_server = FakeServer.new(
+          @fake_server = FakeSSLServer.new(
             Port: @fake_server_port,
             Logger: WEBrick::Log.new(nil, 0), # silence logging
             AccessLog: [], # silence logging
@@ -133,7 +143,7 @@ module MiniProxy
             SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
             SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
             SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
-            SSLCertName: [["CN", WEBrick::Utils::getservername]],
+            SSLCertName: [["CN", WEBrick::Utils.getservername]],
           )
           @thread = Thread.new { @fake_server.start }
         rescue
@@ -159,5 +169,5 @@ end
 
 RSpec.configure do |config|
   config.before(:suite) { MiniProxy::Server.start }
-  config.after(:each) { puts MiniProxy::Server.reset }
+  config.after { puts MiniProxy::Server.reset }
 end
