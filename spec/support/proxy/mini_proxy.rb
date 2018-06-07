@@ -86,17 +86,6 @@ module MiniProxy
         super(req, res)
       end
     end
-
-    def stack_request(method:, url:, response:)
-      # TODO: break apart request/response objects
-      response = MiniProxy::Stub::Response.new(headers: response[:headers], body: response[:body])
-      request = MiniProxy::Stub::Request.new(method: method, url: url, response: response)
-      @requests << request
-    end
-
-    def empty_request_stack
-      @requests = []
-    end
   end
 
   # MiniProxy fake SSL server, which receives relayed HTTPS requests from the ProxyServer
@@ -138,7 +127,6 @@ module MiniProxy
     attr_reader :proxy, :fake_server, :port
 
     def self.reset
-      instance.proxy.empty_request_stack
       instance.fake_server.empty_request_stack
     end
 
