@@ -4,7 +4,7 @@ require "webrick/httpproxy"
 require "webrick/https" # THIS IS KEY
 
 module MiniProxy
-  ALLOWED_HOSTS = Regexp.union("127.0.0.1", "localhost")
+  ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
   module Stub
     # MiniProxy stub request to match and stub external URLs with a stubbed response
@@ -60,20 +60,11 @@ module MiniProxy
       super(config, default)
     end
 
-    # if we receive an SSL request, hand it off to our fake server, which is ready
-    # and waiting to respond with mocks!
-    def do_CONNECT(req, res)
-      req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
-      super(req, res)
-    end
-
     def service(req, res)
-      if (request = @requests.detect { |mock_request| mock_request.match?(req) })
-        response = request.response
-        res.status = response.code
-        response.headers.each { |key, value| res[key] = value }
-        res.body = response.body
+      if ALLOWED_HOSTS.include?(req.host)
+        super(req, res)
       else
+        req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
         super(req, res)
       end
     end
@@ -93,11 +84,29 @@ module MiniProxy
   # MiniProxy fake SSL server, which receives relayed HTTPS requests from the ProxyServer
   #
   class FakeSSLServer < WEBrick::HTTPProxyServer
-    # TODO: respond with mocks?
     def service(req, res)
-      res.status = 200
-      res.body = ""
-      STDOUT.puts "WARN: request to #{req.host}#{req.path} not mocked"
+      if (request = @requests.detect { |mock_request| mock_request.match?(req) })
+        response = request.response
+        res.status = response.code
+        response.headers.each { |key, value| res[key] = value }
+        res.body = response.body
+      else
+        res.status = 200
+        res.body = ""
+        STDOUT.puts "WARN: external request to #{req.host}#{req.path} not mocked"
+      end
+    end
+
+    def stack_request(method:, url:, response:)
+      # TODO: break apart request/response objects
+      response = MiniProxy::Stub::Response.new(headers: response[:headers], body: response[:body])
+      request = MiniProxy::Stub::Request.new(method: method, url: url, response: response)
+      @requests ||= []
+      @requests << request
+    end
+
+    def empty_request_stack
+      @requests = []
     end
   end
 
@@ -108,10 +117,11 @@ module MiniProxy
 
     include Singleton
 
-    attr_reader :proxy, :port
+    attr_reader :proxy, :fake_server, :port
 
     def self.reset
       instance.proxy.empty_request_stack
+      instance.fake_server.empty_request_stack
     end
 
     def self.start
@@ -127,7 +137,7 @@ module MiniProxy
     end
 
     def self.stub_request(method:, url:, response: {})
-      instance.proxy.stack_request(method: method, url: url, response: response)
+      instance.fake_server.stack_request(method: method, url: url, response: response)
     end
 
     def initialize
