@@ -60,6 +60,24 @@ module MiniProxy
       super(config, default)
     end
 
+    def do_PUT(req, res)
+      perform_proxy_request(req, res) do |http, path, header|
+        http.put(path, req.body || "", header)
+      end
+    end
+
+    def do_DELETE(req, res)
+      perform_proxy_request(req, res) do |http, path, header|
+        http.delete(path, header)
+      end
+    end
+
+    def do_PATCH(req, res)
+      perform_proxy_request(req, res) do |http, path, header|
+        http.patch(path, req.body || "", header)
+      end
+    end
+
     def service(req, res)
       if ALLOWED_HOSTS.include?(req.host)
         super(req, res)
