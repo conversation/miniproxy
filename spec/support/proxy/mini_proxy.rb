@@ -55,11 +55,6 @@ module MiniProxy
   class ProxyServer < WEBrick::HTTPProxyServer
     attr_accessor :requests
 
-    def initialize(config = {}, default = WEBrick::Config::HTTP)
-      @requests = []
-      super(config, default)
-    end
-
     def do_PUT(req, res)
       perform_proxy_request(req, res) do |http, path, header|
         http.put(path, req.body || "", header)
