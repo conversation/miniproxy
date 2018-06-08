@@ -77,8 +77,16 @@ module MiniProxy
       if ALLOWED_HOSTS.include?(req.host)
         super(req, res)
       else
-        req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
-        super(req, res)
+        if req.request_method == "CONNECT"
+          # If something is trying to initiate an SSL connection, rewrite
+          # the URI to point to our fake server.
+          req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
+          super(req, res)
+        else
+          # Otherwise, call our handler to respond with an appropriate
+          # mock for the request.
+          self.config[:MockHandlerCallback].call(req, res)
+        end
       end
     end
   end
@@ -87,6 +95,82 @@ module MiniProxy
   #
   class FakeSSLServer < WEBrick::HTTPServer
     def service(req, res)
+      if ALLOWED_HOSTS.include?(req.host)
+        super(req, res)
+      else
+        self.config[:MockHandlerCallback].call(req, res)
+      end
+    end
+  end
+
+  # MiniProxy server singleton, used as a facade to boot the ProxyServer
+  #
+  class Server
+    SERVER_DYNAMIC_PORT_RANGE = (12345..32768).to_a.freeze
+
+    include Singleton
+
+    attr_reader :proxy, :fake_server, :port
+
+    def self.reset
+      instance.empty_request_stack
+    end
+
+    def self.start
+      instance
+    end
+
+    def self.port
+      instance.port
+    end
+
+    def self.host
+      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
+    end
+
+    def self.stub_request(method:, url:, response: {})
+      instance.stack_request(method: method, url: url, response: response)
+    end
+
+    def initialize
+      ssl = Fauthentic.generate
+
+      Timeout.timeout(10) do
+        begin
+          @fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
+          @fake_server = FakeSSLServer.new(
+            Port: @fake_server_port,
+            Logger: WEBrick::Log.new(nil, 0), # silence logging
+            AccessLog: [], # silence logging
+            SSLEnable: true,
+            SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
+            SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
+            SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
+            SSLCertName: [["CN", WEBrick::Utils.getservername]],
+            MockHandlerCallback: method(:mock_handler),
+          )
+          @thread = Thread.new { @fake_server.start }
+        rescue
+          retry
+        end
+
+        begin
+          @port = ENV["MINI_PROXY_PORT"] || SERVER_DYNAMIC_PORT_RANGE.sample
+          @proxy = MiniProxy::ProxyServer.new(
+            Port: @port,
+            FakeServerPort: @fake_server_port,
+            Logger: WEBrick::Log.new(nil, 0), # silence logging
+            AccessLog: [], # silence logging
+            MockHandlerCallback: method(:mock_handler),
+          )
+          @thread = Thread.new { @proxy.start }
+        rescue Errno::EADDRINUSE
+          retry
+        end
+      end
+    end
+
+    def mock_handler(req, res)
       if (request = mock_requests.detect { |mock_request| mock_request.match?(req) })
         response = request.response
         res.status = response.code
@@ -112,72 +196,6 @@ module MiniProxy
 
     def empty_request_stack
       mock_requests.clear
-    end
-  end
-
-  # MiniProxy server singleton, used as a facade to boot the ProxyServer
-  #
-  class Server
-    SERVER_DYNAMIC_PORT_RANGE = (12345..32768).to_a.freeze
-
-    include Singleton
-
-    attr_reader :proxy, :fake_server, :port
-
-    def self.reset
-      instance.fake_server.empty_request_stack
-    end
-
-    def self.start
-      instance
-    end
-
-    def self.port
-      instance.port
-    end
-
-    def self.host
-      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
-    end
-
-    def self.stub_request(method:, url:, response: {})
-      instance.fake_server.stack_request(method: method, url: url, response: response)
-    end
-
-    def initialize
-      ssl = Fauthentic.generate
-
-      Timeout.timeout(10) do
-        begin
-          @fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
-          @fake_server = FakeSSLServer.new(
-            Port: @fake_server_port,
-            Logger: WEBrick::Log.new(nil, 0), # silence logging
-            AccessLog: [], # silence logging
-            SSLEnable: true,
-            SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
-            SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
-            SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
-            SSLCertName: [["CN", WEBrick::Utils.getservername]],
-          )
-          @thread = Thread.new { @fake_server.start }
-        rescue
-          retry
-        end
-
-        begin
-          @port = ENV["MINI_PROXY_PORT"] || SERVER_DYNAMIC_PORT_RANGE.sample
-          @proxy = MiniProxy::ProxyServer.new(
-            Port: @port,
-            FakeServerPort: @fake_server_port,
-            Logger: WEBrick::Log.new(nil, 0), # silence logging
-            AccessLog: [], # silence logging
-          )
-          @thread = Thread.new { @proxy.start }
-        rescue Errno::EADDRINUSE
-          retry
-        end
-      end
     end
   end
 end
