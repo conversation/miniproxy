@@ -55,6 +55,15 @@ module MiniProxy
   class ProxyServer < WEBrick::HTTPProxyServer
     attr_accessor :requests
 
+    def initialize(config = {}, default = WEBrick::Config::HTTP)
+      config = config.merge({
+        Logger: WEBrick::Log.new(nil, 0), # silence logging
+        AccessLog: [], # silence logging
+      })
+
+      super(config, default)
+    end
+
     def do_PUT(req, res)
       perform_proxy_request(req, res) do |http, path, header|
         http.put(path, req.body || "", header)
@@ -94,6 +103,22 @@ module MiniProxy
   # MiniProxy fake SSL enabled server, which receives relayed requests from the ProxyServer
   #
   class FakeSSLServer < WEBrick::HTTPServer
+    def initialize(config = {}, default = WEBrick::Config::HTTP)
+      ssl = Fauthentic.generate
+
+      config = config.merge({
+        Logger: WEBrick::Log.new(nil, 0), # silence logging
+        AccessLog: [], # silence logging
+        SSLEnable: true,
+        SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
+        SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
+        SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
+        SSLCertName: [["CN", WEBrick::Utils.getservername]],
+      })
+
+      super(config, default)
+    end
+
     def service(req, res)
       if ALLOWED_HOSTS.include?(req.host)
         super(req, res)
@@ -133,20 +158,11 @@ module MiniProxy
     end
 
     def initialize
-      ssl = Fauthentic.generate
-
       Timeout.timeout(10) do
         begin
           @fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
           @fake_server = FakeSSLServer.new(
             Port: @fake_server_port,
-            Logger: WEBrick::Log.new(nil, 0), # silence logging
-            AccessLog: [], # silence logging
-            SSLEnable: true,
-            SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
-            SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
-            SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
-            SSLCertName: [["CN", WEBrick::Utils.getservername]],
             MockHandlerCallback: method(:mock_handler),
           )
           @thread = Thread.new { @fake_server.start }
@@ -159,8 +175,6 @@ module MiniProxy
           @proxy = MiniProxy::ProxyServer.new(
             Port: @port,
             FakeServerPort: @fake_server_port,
-            Logger: WEBrick::Log.new(nil, 0), # silence logging
-            AccessLog: [], # silence logging
             MockHandlerCallback: method(:mock_handler),
           )
           @thread = Thread.new { @proxy.start }
