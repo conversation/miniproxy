@@ -83,7 +83,7 @@ module MiniProxy
     end
   end
 
-  # MiniProxy fake SSL server, which receives relayed HTTPS requests from the ProxyServer
+  # MiniProxy fake SSL enabled server, which receives relayed requests from the ProxyServer
   #
   class FakeSSLServer < WEBrick::HTTPProxyServer
     def service(req, res)
