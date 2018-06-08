@@ -87,7 +87,7 @@ module MiniProxy
   #
   class FakeSSLServer < WEBrick::HTTPServer
     def service(req, res)
-      if (request = @requests.detect { |mock_request| mock_request.match?(req) })
+      if (request = mock_requests.detect { |mock_request| mock_request.match?(req) })
         response = request.response
         res.status = response.code
         response.headers.each { |key, value| res[key] = value }
@@ -99,16 +99,19 @@ module MiniProxy
       end
     end
 
+    def mock_requests
+      @requests ||= []
+    end
+
     def stack_request(method:, url:, response:)
       # TODO: break apart request/response objects
       response = MiniProxy::Stub::Response.new(headers: response[:headers], body: response[:body])
       request = MiniProxy::Stub::Request.new(method: method, url: url, response: response)
-      @requests ||= []
-      @requests << request
+      mock_requests.push(request)
     end
 
     def empty_request_stack
-      @requests = []
+      mock_requests.clear
     end
   end
 
