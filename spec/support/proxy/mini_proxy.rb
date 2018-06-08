@@ -85,7 +85,7 @@ module MiniProxy
 
   # MiniProxy fake SSL enabled server, which receives relayed requests from the ProxyServer
   #
-  class FakeSSLServer < WEBrick::HTTPProxyServer
+  class FakeSSLServer < WEBrick::HTTPServer
     def service(req, res)
       if (request = @requests.detect { |mock_request| mock_request.match?(req) })
         response = request.response
