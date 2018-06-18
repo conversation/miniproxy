@@ -166,7 +166,7 @@ module MiniProxy
             MockHandlerCallback: method(:mock_handler),
           )
           @thread = Thread.new { @fake_server.start }
-        rescue
+        rescue Errno::EADDRINUSE
           retry
         end
 
