@@ -1,39 +1,16 @@
 require "drb"
-require "singleton"
 require "timeout"
 require_relative "./remote"
 
 module MiniProxy
   ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
-  # MiniProxy server singleton, used as a facade to boot the ProxyServer
+  # Provides an interface to communicate with the remote
+  # server. Any command given with this interface will start
+  # the server if it hasn't started already
   #
   class Server
-    include Singleton
-
-    attr_reader :proxy, :fake_server, :port
-
-    def self.reset
-      instance.remote.clear
-    end
-
-    def self.stop
-      instance.remote.stop
-    end
-
-    def self.port
-      instance.remote.port
-    end
-
-    def self.host
-      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
-    end
-
-    def self.stub_request(method:, url:, response: {})
-      instance.remote.stub_request(method: method, url: url, response: response)
-    end
-
-    def remote
+    def self.remote
       Timeout.timeout(5) do
         begin
           remote = DRbObject.new(nil, Remote.server)
@@ -47,6 +24,26 @@ module MiniProxy
           retry
         end
       end
+    end
+
+    def self.reset
+      remote.clear
+    end
+
+    def self.stop
+      remote.stop
+    end
+
+    def self.port
+      remote.port
+    end
+
+    def self.host
+      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
+    end
+
+    def self.stub_request(method:, url:, response: {})
+      remote.stub_request(method: method, url: url, response: response)
     end
   end
 end
