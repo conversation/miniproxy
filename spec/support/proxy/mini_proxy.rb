@@ -31,7 +31,7 @@ module MiniProxy
     end
 
     def self.stop
-      remote.stop
+      remote.stop if Remote.drb_process_alive?
     end
 
     def self.port
