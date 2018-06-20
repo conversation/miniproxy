@@ -1,5 +1,6 @@
 require "fauthentic"
-require "webrick/https" # THIS IS KEY
+require "webrick/https" # This is required to create a HTTPS server
+# https://ruby-doc.org/stdlib-2.0.0/libdoc/webrick/rdoc/WEBrick.html#module-WEBrick-label-HTTPS
 
 module MiniProxy
   # MiniProxy fake SSL enabled server, which receives relayed requests from the ProxyServer
