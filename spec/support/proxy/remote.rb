@@ -68,7 +68,6 @@ module MiniProxy
 
     def handler(req, res)
       if (request = @stubs.detect { |mock_request| mock_request.match?(req) })
-        # puts "request detected: #{req.inspect}"
         response = request.response
         res.status = response.code
         response.headers.each { |key, value| res[key] = value }
