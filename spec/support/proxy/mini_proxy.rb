@@ -8,8 +8,10 @@ module MiniProxy
   # the server if it hasn't started already
   #
   class Server
+    DRB_SERVICE_TIMEOUT = 5
+
     def self.remote
-      Timeout.timeout(5) do
+      Timeout.timeout(DRB_SERVICE_TIMEOUT) do
         begin
           remote = DRbObject.new(nil, Remote.server)
 

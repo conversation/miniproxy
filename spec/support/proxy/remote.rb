@@ -7,6 +7,7 @@ module MiniProxy
   #
   class Remote
     SERVER_DYNAMIC_PORT_RANGE = (12345..32768).to_a.freeze
+    SERVER_START_TIMEOUT = 10
 
     def self.pid
       @pid
@@ -31,7 +32,7 @@ module MiniProxy
       @pid = fork do
         remote = Remote.new
 
-        Timeout.timeout(10) do
+        Timeout.timeout(SERVER_START_TIMEOUT) do
           begin
             fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
             fake_server = FakeSSLServer.new(
