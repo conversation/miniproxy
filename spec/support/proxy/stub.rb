@@ -30,7 +30,7 @@ module MiniProxy
       end
 
       def body
-        @body.presence || ""
+        @body || ""
       end
 
       def code
@@ -38,7 +38,7 @@ module MiniProxy
       end
 
       def headers
-        @headers.presence || { "Content-Type" => "text/html" }
+        @headers || { "Content-Type" => "text/html" }
       end
     end
   end
