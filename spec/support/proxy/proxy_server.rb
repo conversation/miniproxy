@@ -4,6 +4,8 @@ module MiniProxy
   # MiniProxy server, which boots a WEBrick proxy server
   #
   class ProxyServer < WEBrick::HTTPProxyServer
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
     attr_accessor :requests
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)

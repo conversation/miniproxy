@@ -3,8 +3,6 @@ require "timeout"
 require_relative "./remote"
 
 module MiniProxy
-  ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
-
   # Provides an interface to communicate with the remote
   # server. Any command given with this interface will start
   # the server if it hasn't started already
