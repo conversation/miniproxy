@@ -1,6 +1,6 @@
 require "drb"
 require "timeout"
-require_relative "./remote"
+require "miniproxy/remote"
 
 module MiniProxy
   # Provides an interface to communicate with the remote

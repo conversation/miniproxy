@@ -1,6 +1,6 @@
-require_relative "./stub"
-require_relative "./proxy_server"
-require_relative "./fake_ssl_server"
+require "miniproxy/stub"
+require "miniproxy/proxy_server"
+require "miniproxy/fake_ssl_server"
 
 module MiniProxy
   # Controls the remote DRb service, which provides a communcation mechanism
