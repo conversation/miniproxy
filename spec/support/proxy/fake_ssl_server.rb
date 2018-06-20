@@ -5,7 +5,7 @@ module MiniProxy
   # MiniProxy fake SSL enabled server, which receives relayed requests from the ProxyServer
   #
   class FakeSSLServer < WEBrick::HTTPServer
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"].freeze
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
       ssl = Fauthentic.generate
