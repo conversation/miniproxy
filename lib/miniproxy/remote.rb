@@ -77,6 +77,7 @@ module MiniProxy
         res.status = 200
         res.body = ""
         STDOUT.puts "WARN: external request to #{req.host}#{req.path} not mocked"
+        STDOUT.puts %Q{Stub with: MiniProxy::Server.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
       end
     end
 
