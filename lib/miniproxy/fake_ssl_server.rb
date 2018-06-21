@@ -1,4 +1,3 @@
-require "fauthentic"
 require "webrick/https" # This is required to create a HTTPS server
 # https://ruby-doc.org/stdlib-2.0.0/libdoc/webrick/rdoc/WEBrick.html#module-WEBrick-label-HTTPS
 
@@ -9,14 +8,12 @@ module MiniProxy
     ALLOWED_HOSTS = ["127.0.0.1", "localhost"].freeze
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
-      ssl = Fauthentic.generate
-
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging
         AccessLog: [], # silence logging
         SSLEnable: true,
-        SSLCertificate: OpenSSL::X509::Certificate.new(ssl.cert.to_pem),
-        SSLPrivateKey: OpenSSL::PKey::RSA.new(ssl.key.to_s),
+        SSLCertificate: OpenSSL::X509::Certificate.new(certificate_file("cert.pem")),
+        SSLPrivateKey: OpenSSL::PKey::RSA.new(certificate_file("cert.key")),
         SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
         SSLCertName: [["CN", WEBrick::Utils.getservername]],
       })
@@ -30,6 +27,13 @@ module MiniProxy
       else
         self.config[:MockHandlerCallback].call(req, res)
       end
+    end
+
+    private
+
+    def certificate_file(filename)
+      filename = File.join( File.dirname(__FILE__), "../../ssl/#{filename}")
+      File.open(filename).read
     end
   end
 end
