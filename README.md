@@ -46,8 +46,20 @@ In your specs, to stub a request:
     })
 
 
-## Testing MiniProxy itself
+## Developing
 
-Tests are run via RSpec:
+Pull requests are welcome, we try our best to stick with [semver](https://semver.org/), avoid breaking changes to the API whenever possible.
 
-    rspec spec
+Run the unit tests:
+
+    bundle exec rspec spec/lib
+
+Integration tests use capybara/selenium/firefox. So you'll need a modern version of Firefox and Geckodriver on your system PATH. They can be run like so:
+
+    bundle exec rspec spec/integration
+
+Alternatively you can just rely on CI to run the integration tests.
+
+And of course, to run all the tests:
+
+    bundle exec rspec

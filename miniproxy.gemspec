@@ -7,4 +7,6 @@ spec = Gem::Specification.new do |s|
   s.files = `git ls-files -- lib/*`.split("\n")
 
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'capybara'
+  s.add_development_dependency 'selenium-webdriver'
 end
