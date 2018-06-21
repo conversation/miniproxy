@@ -63,3 +63,9 @@ Alternatively you can just rely on CI to run the integration tests.
 And of course, to run all the tests:
 
     bundle exec rspec
+
+
+## Alternatives
+
+- [Puffing Billy](https://github.com/oesmith/puffing-billy) - MiniProxy's more capable and more complex cousin
+- [EvilProxy](https://github.com/bbtfr/evil-proxy) - Lighter weight than Puffing Billy, with a focus on HTTPS MITM support
