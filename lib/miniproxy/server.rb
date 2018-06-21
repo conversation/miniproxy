@@ -10,22 +10,6 @@ module MiniProxy
   class Server
     DRB_SERVICE_TIMEOUT = 5
 
-    def self.remote
-      Timeout.timeout(DRB_SERVICE_TIMEOUT) do
-        begin
-          remote = DRbObject.new(nil, Remote.server)
-
-          until remote.started?
-            sleep 0.01
-          end
-
-          remote
-        rescue
-          retry
-        end
-      end
-    end
-
     def self.reset
       remote.clear
     end
@@ -39,7 +23,7 @@ module MiniProxy
     end
 
     def self.host
-      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
+      "127.0.0.1"
     end
 
     def self.ignore_all_requests
@@ -52,6 +36,22 @@ module MiniProxy
 
     def self.stub_request(method:, url:, response: {})
       remote.stub_request(method: method, url: url, response: response)
+    end
+
+    private_class_method def self.remote
+      Timeout.timeout(DRB_SERVICE_TIMEOUT) do
+        begin
+          remote = DRbObject.new(nil, Remote.server)
+
+          until remote.started?
+            sleep 0.01
+          end
+
+          remote
+        rescue
+          retry
+        end
+      end
     end
   end
 end
