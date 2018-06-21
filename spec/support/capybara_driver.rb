@@ -1,3 +1,6 @@
+require "capybara"
+require "selenium-webdriver"
+
 firefox_profile = Selenium::WebDriver::Firefox::Profile.new
 firefox_profile.assume_untrusted_certificate_issuer = true
 firefox_profile.proxy = Selenium::WebDriver::Proxy.new(

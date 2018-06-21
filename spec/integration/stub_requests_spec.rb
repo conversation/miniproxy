@@ -1,6 +1,5 @@
 require "capybara"
 require "miniproxy"
-require "selenium-webdriver"
 require "support/capybara_driver"
 
 RSpec.describe "miniproxy" do
