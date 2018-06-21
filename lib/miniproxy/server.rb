@@ -23,7 +23,7 @@ module MiniProxy
     end
 
     def self.host
-      ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
+      "127.0.0.1"
     end
 
     def self.stub_request(method:, url:, response: {})
