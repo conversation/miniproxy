@@ -1,0 +1,1 @@
+require "miniproxy/stub/request"

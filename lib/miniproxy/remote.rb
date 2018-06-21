@@ -1,4 +1,5 @@
-require "miniproxy/stub"
+require "miniproxy/stub/request"
+require "miniproxy/stub/response"
 require "miniproxy/proxy_server"
 require "miniproxy/fake_ssl_server"
 
