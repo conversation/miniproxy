@@ -28,8 +28,13 @@ Make sure that RSpec resets the server after each test, and stops the server whe
     require "miniproxy"
 
     RSpec.configure do |config|
-      config.after :each, type: :feature do
+      config.before :each, type: :feature do
         MiniProxy::Server.reset
+      end
+
+      config.after :each, type: :feature do
+        # Ignore any requests made between specs
+        MiniProxy::Server.ignore_all_requests
       end
 
       config.after :suite do

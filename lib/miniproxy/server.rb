@@ -42,6 +42,14 @@ module MiniProxy
       ENV.fetch("MINI_PROXY_HOST", "127.0.0.1")
     end
 
+    def self.ignore_all_requests
+      reset
+
+      %w(GET POST PUT PATCH DELETE).each do |method|
+        stub_request(method: method, url: /.*/)
+      end
+    end
+
     def self.stub_request(method:, url:, response: {})
       remote.stub_request(method: method, url: url, response: response)
     end
