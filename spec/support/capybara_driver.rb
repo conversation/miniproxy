@@ -10,6 +10,7 @@ firefox_profile.proxy = Selenium::WebDriver::Proxy.new(
 
 # disabling these features ensures no automatic requests by firefox are made
 # ref: https://bugzilla.mozilla.org/show_bug.cgi?id=1410586
+firefox_profile["browser.chrome.favicons"] = false
 firefox_profile["privacy.trackingprotection.annotate_channels"] = false
 firefox_profile["privacy.trackingprotection.enabled"] = false
 firefox_profile["privacy.trackingprotection.pbmode.enabled"] = false
