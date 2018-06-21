@@ -6,6 +6,5 @@ spec = Gem::Specification.new do |s|
 
   s.files = `git ls-files -- lib/*`.split("\n")
 
-  s.add_dependency 'fauthentic'
   s.add_development_dependency 'rspec'
 end
