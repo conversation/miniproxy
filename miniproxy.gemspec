@@ -5,8 +5,12 @@ require 'miniproxy/version'
 Gem::Specification.new do |s|
   s.name = 'miniproxy'
   s.version = MiniProxy::VERSION
-  s.summary = 'Stub requests for browser tests'
-  s.authors = ["x"]
+  s.authors = ['The Conversation Dev Team']
+
+  s.summary = 'Easily stub external requests for your browser tests.'
+  s.description = 'A tool which allows you to easily stub requests to external sites for your browser tests.'
+  s.homepage = 'https://github.com/conversation/miniproxy'
+  s.license = 'MIT'
 
   s.files = `git ls-files -- lib/*`.split("\n")
 
