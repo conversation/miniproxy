@@ -25,31 +25,34 @@ https://groups.google.com/a/chromium.org/forum/#!topic/headless-dev/eiudRsYdc3A
 
 Make sure that RSpec resets the server after each test, and stops the server when the suite is finished (`spec/support/mini_proxy.rb`):
 
-    require "miniproxy"
+```ruby
+require "miniproxy"
 
-    RSpec.configure do |config|
-      config.before :each, type: :feature do
-        MiniProxy::Server.reset
-      end
+RSpec.configure do |config|
+  config.before(:each, type: :feature) do
+    # Ignore any requests made between specs
+    MiniProxy::Server.ignore_all_requests
+  end
 
-      config.after :each, type: :feature do
-        # Ignore any requests made between specs
-        MiniProxy::Server.ignore_all_requests
-      end
+  config.after(:each, type: :feature) do
+    MiniProxy::Server.reset
+  end
 
-      config.after :suite do
-        MiniProxy::Server.stop
-      end
-    end
+  config.after(:suite) do
+    MiniProxy::Server.stop
+  end
+end
+```
 
 In your specs, to stub a request:
 
-    MiniProxy::Server.stub_request(method: "POST", url: /example.com/, response: {
-      headers: { "Foo" => "bar" },
-      code: 200,
-      body: "hello",
-    })
-
+```ruby
+MiniProxy::Server.stub_request(method: "POST", url: /example.com/, response: {
+  headers: { "Foo" => "bar" },
+  code: 200,
+  body: "hello",
+})
+```
 
 ## Developing
 
