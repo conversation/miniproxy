@@ -47,6 +47,8 @@ module MiniProxy
             sleep 0.01
           end
 
+          remote.drain_messages.each(&method(:puts))
+
           remote
         rescue
           retry

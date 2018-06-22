@@ -77,8 +77,8 @@ module MiniProxy
       else
         res.status = 200
         res.body = ""
-        STDOUT.puts "WARN: external request to #{req.host}#{req.path} not mocked"
-        STDOUT.puts %Q{Stub with: MiniProxy::Server.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
+        queue_message "WARN: external request to #{req.host}#{req.path} not mocked"
+        queue_message %Q{Stub with: MiniProxy::Server.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
       end
     end
 
@@ -104,6 +104,10 @@ module MiniProxy
       @stubs.clear
     end
 
+    def drain_messages
+      @messages.slice!(0, @messages.length)
+    end
+
     def started?
       current_server = DRb.current_server()
       current_server && current_server.alive?
@@ -111,8 +115,13 @@ module MiniProxy
 
     private
 
+    def queue_message(msg)
+      @messages.push msg
+    end
+
     def initialize
       @stubs = []
+      @messages = []
     end
   end
 end
