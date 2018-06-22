@@ -23,9 +23,10 @@ RSpec.describe "miniproxy" do
     end
 
     context "not stubbed" do
-      it "intercepts the request and prints a warning to stdout", :pending do
+      it "intercepts the request and prints a warning to stdout" do
         expect {
           session.visit("http://example.com")
+          MiniProxy::Server.reset
         }.to output(/WARN/).to_stdout_from_any_process
       end
     end
@@ -48,9 +49,10 @@ RSpec.describe "miniproxy" do
     end
 
     context "not stubbed" do
-      it "intercepts the request and prints a warning to stdout", :pending do
+      it "intercepts the request and prints a warning to stdout" do
         expect {
           session.visit("http://example.com")
+          MiniProxy::Server.reset
         }.to output(/WARN/).to_stdout_from_any_process
       end
     end
