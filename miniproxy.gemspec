@@ -1,6 +1,10 @@
-spec = Gem::Specification.new do |s|
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'miniproxy/version'
+
+Gem::Specification.new do |s|
   s.name = 'miniproxy'
-  s.version = '0.0.0'
+  s.version = MiniProxy::VERSION
   s.summary = 'Stub requests for browser tests'
   s.authors = ["x"]
 
