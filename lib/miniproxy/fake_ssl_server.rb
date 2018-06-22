@@ -15,7 +15,6 @@ module MiniProxy
         SSLCertificate: OpenSSL::X509::Certificate.new(certificate_file("cert.pem")),
         SSLPrivateKey: OpenSSL::PKey::RSA.new(certificate_file("cert.key")),
         SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
-        SSLCertName: [["CN", WEBrick::Utils.getservername]],
       })
 
       super(config, default)
