@@ -38,17 +38,15 @@ module MiniProxy
     def service(req, res)
       if ALLOWED_HOSTS.include?(req.host)
         super(req, res)
+      elsif req.request_method == "CONNECT"
+        # If something is trying to initiate an SSL connection, rewrite
+        # the URI to point to our fake server.
+        req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
+        super(req, res)
       else
-        if req.request_method == "CONNECT"
-          # If something is trying to initiate an SSL connection, rewrite
-          # the URI to point to our fake server.
-          req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
-          super(req, res)
-        else
-          # Otherwise, call our handler to respond with an appropriate
-          # mock for the request.
-          self.config[:MockHandlerCallback].call(req, res)
-        end
+        # Otherwise, call our handler to respond with an appropriate
+        # mock for the request.
+        self.config[:MockHandlerCallback].call(req, res)
       end
     end
   end
