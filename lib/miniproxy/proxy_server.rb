@@ -9,6 +9,8 @@ module MiniProxy
     attr_accessor :requests
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
+      @miniproxy_config = config[:MiniproxyConfig]
+
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging
         AccessLog: [], # silence logging
@@ -46,7 +48,10 @@ module MiniProxy
       else
         # Otherwise, call our handler to respond with an appropriate
         # mock for the request.
-        self.config[:MockHandlerCallback].call(req, res)
+        handled = self.config[:MockHandlerCallback].call(req, res)
+
+        # If we have no stub and we're allowing external requests, hit the internet
+        super(req, res) if !handled && @miniproxy_config.call.allow_external_requests
       end
     end
   end

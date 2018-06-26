@@ -39,6 +39,7 @@ module MiniProxy
             fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
             fake_server = FakeSSLServer.new(
               Port: fake_server_port,
+              MiniproxyConfig: remote.method(:config),
               MockHandlerCallback: remote.method(:handler),
             )
             Thread.new { fake_server.start }
@@ -51,6 +52,7 @@ module MiniProxy
             proxy = MiniProxy::ProxyServer.new(
               Port: remote.port,
               FakeServerPort: fake_server_port,
+              MiniproxyConfig: remote.method(:config),
               MockHandlerCallback: remote.method(:handler),
             )
             Thread.new { proxy.start }
@@ -83,11 +85,16 @@ module MiniProxy
         res.status = response.code
         response.headers.each { |key, value| res[key] = value }
         res.body = response.body
+        true
+
       else
-        res.status = 200
-        res.body = ""
-        queue_message "WARN: external request to #{req.host}#{req.path} not mocked"
-        queue_message %Q{Stub with: MiniProxy::Server.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
+        unless @miniproxy_config.allow_external_requests
+          res.status = 200
+          res.body = ""
+          queue_message "WARN: external request to #{req.host}#{req.path} not mocked"
+          queue_message %Q{Stub with: MiniProxy::Server.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
+        end
+        false
       end
     end
 
@@ -126,6 +133,10 @@ module MiniProxy
 
     def queue_message(msg)
       @messages.push msg
+    end
+
+    def config
+      @miniproxy_config
     end
 
     def initialize
