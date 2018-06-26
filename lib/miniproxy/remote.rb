@@ -39,7 +39,7 @@ module MiniProxy
             fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
             fake_server = FakeSSLServer.new(
               Port: fake_server_port,
-              MiniproxyConfig: remote.method(:config),
+              MiniproxyConfig: remote.config,
               MockHandlerCallback: remote.method(:handler),
             )
             Thread.new { fake_server.start }
@@ -52,7 +52,7 @@ module MiniProxy
             proxy = MiniProxy::ProxyServer.new(
               Port: remote.port,
               FakeServerPort: fake_server_port,
-              MiniproxyConfig: remote.method(:config),
+              MiniproxyConfig: remote.config,
               MockHandlerCallback: remote.method(:handler),
             )
             Thread.new { proxy.start }
@@ -77,6 +77,10 @@ module MiniProxy
 
     def set_config(k, v)
       @miniproxy_config[k] = v
+    end
+
+    def config
+      @miniproxy_config
     end
 
     def handler(req, res)
@@ -133,10 +137,6 @@ module MiniProxy
 
     def queue_message(msg)
       @messages.push msg
-    end
-
-    def config
-      @miniproxy_config
     end
 
     def initialize

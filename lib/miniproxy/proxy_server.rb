@@ -51,7 +51,7 @@ module MiniProxy
         handled = self.config[:MockHandlerCallback].call(req, res)
 
         # If we have no stub and we're allowing external requests, hit the internet
-        super(req, res) if !handled && @miniproxy_config.call.allow_external_requests
+        super(req, res) if !handled && @miniproxy_config.allow_external_requests
       end
     end
   end
