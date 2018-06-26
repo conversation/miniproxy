@@ -50,6 +50,12 @@ In your specs, to stub a request:
       body: "hello",
     })
 
+To allow unstubbed requests to hit external servers:
+
+    MiniProxy::Server.set_config :allow_external_requests, true
+
+The default behaviour is to block the request, display a warning and return an empty 200 response.
+
 
 ## Developing
 
