@@ -10,6 +10,14 @@ module MiniProxy
   class Server
     DRB_SERVICE_TIMEOUT = 5
 
+    def self.get_config(k)
+      remote.get_config(k)
+    end
+
+    def self.set_config(k, v)
+      remote.set_config(k, v)
+    end
+
     def self.reset
       remote.clear
     end

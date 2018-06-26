@@ -1,3 +1,4 @@
+require "miniproxy/config"
 require "miniproxy/stub/request"
 require "miniproxy/stub/response"
 require "miniproxy/proxy_server"
@@ -68,6 +69,14 @@ module MiniProxy
       @unix_socket_uri
     end
 
+    def get_config(k)
+      @miniproxy_config[k]
+    end
+
+    def set_config(k, v)
+      @miniproxy_config[k] = v
+    end
+
     def handler(req, res)
       if (request = @stubs.detect { |mock_request| mock_request.match?(req) })
         response = request.response
@@ -122,6 +131,9 @@ module MiniProxy
     def initialize
       @stubs = []
       @messages = []
+      @miniproxy_config = Config.new.tap do |c|
+        c.allow_external_requests = false
+      end
     end
   end
 end
