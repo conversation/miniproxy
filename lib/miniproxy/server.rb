@@ -10,12 +10,8 @@ module MiniProxy
   class Server
     DRB_SERVICE_TIMEOUT = 5
 
-    def self.get_config(k)
-      remote.get_config(k)
-    end
-
-    def self.set_config(k, v)
-      remote.set_config(k, v)
+    def self.allow_external_requests=(is_allowed)
+      remote.set_config(:allow_external_requests, is_allowed)
     end
 
     def self.reset

@@ -6,8 +6,8 @@ RSpec.describe "miniproxy" do
   let(:session) { Capybara::Session.new(:firefox) }
 
   describe "allowing external requests" do
-    before { MiniProxy::Server.set_config :allow_external_requests, true }
-    after { MiniProxy::Server.set_config :allow_external_requests, false }
+    before { MiniProxy::Server.allow_external_requests = true }
+    after { MiniProxy::Server.allow_external_requests = false }
 
     it "hits the internet" do
       session.visit("http://example.com")
@@ -32,12 +32,12 @@ RSpec.describe "miniproxy" do
 
     describe "alternating configuration on the fly" do
       it "works as expected when toggling allow_external_requests" do
-        expect(MiniProxy::Server.get_config(:allow_external_requests)).to be true
+        MiniProxy::Server.allow_external_requests = true
 
         session.visit("http://example.com")
         expect(session).to have_content "Example Domain"
 
-        MiniProxy::Server.set_config :allow_external_requests, false
+        MiniProxy::Server.allow_external_requests = false
 
         expect {
           session.visit("http://foo.com")
