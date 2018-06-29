@@ -8,11 +8,11 @@ RSpec.describe "miniproxy" do
   describe "ignoring all requests" do
     context "without any previous stubs" do
       before do
-        MiniProxy::Server.ignore_all_requests
+        MiniProxy.ignore_all_requests
       end
 
       after do
-        MiniProxy::Server.reset
+        MiniProxy.reset
       end
 
       it "intercepts the request and returns an empty response" do
@@ -23,12 +23,12 @@ RSpec.describe "miniproxy" do
 
     context "with a previously defined stub" do
       before do
-        MiniProxy::Server.stub_request(method: "GET", url: /example.com/, response: { body: "foo" })
-        MiniProxy::Server.ignore_all_requests
+        MiniProxy.stub_request(method: "GET", url: /example.com/, response: { body: "foo" })
+        MiniProxy.ignore_all_requests
       end
 
       after do
-        MiniProxy::Server.reset
+        MiniProxy.reset
       end
 
       it "intercepts the request and returns an empty response" do

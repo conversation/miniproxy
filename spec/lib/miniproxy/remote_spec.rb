@@ -13,7 +13,7 @@ describe MiniProxy::Remote do
 
         expect(remote.drain_messages).to eql [
           "WARN: external request to example.com/ not mocked",
-          %q(Stub with: MiniProxy::Server.stub_request(method: "GET", url: "example.com/"))
+          %q(Stub with: MiniProxy.stub_request(method: "GET", url: "example.com/"))
         ]
       end
     end

@@ -12,7 +12,7 @@ In your Gemfile:
 Configure Capybara (via Chrome and Selenium) to route all requests through the server (`spec/support/capybara_driver.rb`):
 
     chrome_options = Selenium::WebDriver::Chrome::Options.new
-    chrome_options.add_argument("--proxy-server=#{MiniProxy::Server.host}:#{MiniProxy::Server.port}")
+    chrome_options.add_argument("--proxy-server=#{MiniProxy.host}:#{MiniProxy.port}")
     chrome_options.add_argument("--ignore-certificate-errors") # Required to test HTTPS
 
     Capybara.register_driver :chrome do |app|
@@ -29,22 +29,22 @@ Make sure that RSpec resets the server after each test, and stops the server whe
 
     RSpec.configure do |config|
       config.before :each, type: :feature do
-        MiniProxy::Server.reset
+        MiniProxy.reset
       end
 
       config.after :each, type: :feature do
         # Ignore any requests made between specs
-        MiniProxy::Server.ignore_all_requests
+        MiniProxy.ignore_all_requests
       end
 
       config.after :suite do
-        MiniProxy::Server.stop
+        MiniProxy.stop
       end
     end
 
 In your specs, to stub a request:
 
-    MiniProxy::Server.stub_request(method: "POST", url: /example.com/, response: {
+    MiniProxy.stub_request(method: "POST", url: /example.com/, response: {
       headers: { "Foo" => "bar" },
       code: 200,
       body: "hello",
@@ -52,7 +52,7 @@ In your specs, to stub a request:
 
 To allow unstubbed requests to hit external servers:
 
-    MiniProxy::Server.allow_external_requests = true
+    MiniProxy.allow_external_requests = true
 
 The default behaviour is to block the request, display a warning and return an empty 200 response.
 
