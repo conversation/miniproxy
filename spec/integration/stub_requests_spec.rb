@@ -9,11 +9,11 @@ RSpec.describe "miniproxy" do
 
     context "stubbed" do
       before do
-        MiniProxy::Server.stub_request(method: "GET", url: /example.com/, response: { body: "foo" })
+        MiniProxy.stub_request(method: "GET", url: /example.com/, response: { body: "foo" })
       end
 
       after do
-        MiniProxy::Server.reset
+        MiniProxy.reset
       end
 
       it "intercepts the request and returns the mock response" do
@@ -26,7 +26,7 @@ RSpec.describe "miniproxy" do
       it "intercepts the request and prints a warning to stdout" do
         expect {
           session.visit("http://example.com")
-          MiniProxy::Server.reset
+          MiniProxy.reset
         }.to output(/WARN/).to_stdout_from_any_process
       end
     end
@@ -35,11 +35,11 @@ RSpec.describe "miniproxy" do
   describe "https request" do
     context "stubbed" do
       before do
-        MiniProxy::Server.stub_request(method: "GET", url: /example.com/, response: { body: "foo" })
+        MiniProxy.stub_request(method: "GET", url: /example.com/, response: { body: "foo" })
       end
 
       after do
-        MiniProxy::Server.reset
+        MiniProxy.reset
       end
 
       it "intercepts the request and returns the mock response" do
@@ -52,7 +52,7 @@ RSpec.describe "miniproxy" do
       it "intercepts the request and prints a warning to stdout" do
         expect {
           session.visit("http://example.com")
-          MiniProxy::Server.reset
+          MiniProxy.reset
         }.to output(/WARN/).to_stdout_from_any_process
       end
     end

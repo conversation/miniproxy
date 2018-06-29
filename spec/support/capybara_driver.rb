@@ -4,8 +4,8 @@ require "selenium-webdriver"
 firefox_profile = Selenium::WebDriver::Firefox::Profile.new
 firefox_profile.assume_untrusted_certificate_issuer = true
 firefox_profile.proxy = Selenium::WebDriver::Proxy.new(
-  http: "#{MiniProxy::Server.host}:#{MiniProxy::Server.port}",
-  ssl: "#{MiniProxy::Server.host}:#{MiniProxy::Server.port}"
+  http: "#{MiniProxy.host}:#{MiniProxy.port}",
+  ssl: "#{MiniProxy.host}:#{MiniProxy.port}"
 )
 
 # disabling these features ensures no automatic requests by firefox are made

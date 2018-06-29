@@ -1,5 +1,5 @@
-require "miniproxy/server"
+require "miniproxy"
 
 RSpec.configure do |config|
-  config.after(:suite) { MiniProxy::Server.stop }
+  config.after(:suite) { MiniProxy.stop }
 end
