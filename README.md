@@ -7,17 +7,21 @@ A small stubbable proxy server for testing HTTP(S) interactions.
 
 In your Gemfile:
 
-    gem 'miniproxy'
+```ruby
+gem 'miniproxy'
+```
 
 Configure Capybara (via Chrome and Selenium) to route all requests through the server (`spec/support/capybara_driver.rb`):
 
-    chrome_options = Selenium::WebDriver::Chrome::Options.new
-    chrome_options.add_argument("--proxy-server=#{MiniProxy.host}:#{MiniProxy.port}")
-    chrome_options.add_argument("--ignore-certificate-errors") # Required to test HTTPS
+```ruby
+chrome_options = Selenium::WebDriver::Chrome::Options.new
+chrome_options.add_argument("--proxy-server=#{MiniProxy.host}:#{MiniProxy.port}")
+chrome_options.add_argument("--ignore-certificate-errors") # Required to test HTTPS
 
-    Capybara.register_driver :chrome do |app|
-      Capybara::Selenium::Driver.new(app, browser: :chrome, options: chrome_options)
-    end
+Capybara.register_driver :chrome do |app|
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: chrome_options)
+end
+```
 
 This configuration will not work in conjunction with `--headless`, which causes chrome to fetch its configuration
 from another source and silently ignore command line parameters. For details, see:
@@ -25,34 +29,40 @@ https://groups.google.com/a/chromium.org/forum/#!topic/headless-dev/eiudRsYdc3A
 
 Make sure that RSpec resets the server after each test, and stops the server when the suite is finished (`spec/support/mini_proxy.rb`):
 
-    require "miniproxy"
+```ruby
+require "miniproxy"
 
-    RSpec.configure do |config|
-      config.before :each, type: :feature do
-        MiniProxy.reset
-      end
+RSpec.configure do |config|
+  config.before :each, type: :feature do
+    MiniProxy.reset
+  end
 
-      config.after :each, type: :feature do
-        # Ignore any requests made between specs
-        MiniProxy.ignore_all_requests
-      end
+  config.after :each, type: :feature do
+    # Ignore any requests made between specs
+    MiniProxy.ignore_all_requests
+  end
 
-      config.after :suite do
-        MiniProxy.stop
-      end
-    end
+  config.after :suite do
+    MiniProxy.stop
+  end
+end
+```
 
 In your specs, to stub a request:
 
-    MiniProxy.stub_request(method: "POST", url: /example.com/, response: {
-      headers: { "Foo" => "bar" },
-      code: 200,
-      body: "hello",
-    })
+```ruby
+MiniProxy.stub_request(method: "POST", url: /example.com/, response: {
+  headers: { "Foo" => "bar" },
+  code: 200,
+  body: "hello",
+})
+```
 
 To allow unstubbed requests to hit external servers:
 
-    MiniProxy.allow_external_requests = true
+```ruby
+MiniProxy.allow_external_requests = true
+```
 
 The default behaviour is to block the request, display a warning and return an empty 200 response.
 
@@ -63,18 +73,23 @@ Pull requests are welcome, we try our best to stick with [semver](https://semver
 
 Run the unit tests:
 
-    bundle exec rspec spec/lib
+```
+bundle exec rspec spec/lib
+```
 
 Integration tests use capybara/selenium/firefox. So you'll need a modern version of Firefox and Geckodriver on your system PATH. They can be run like so:
 
-    bundle exec rspec spec/integration
+```
+bundle exec rspec spec/integration
+```
 
 Alternatively you can just rely on CI to run the integration tests.
 
 And of course, to run all the tests:
 
-    bundle exec rspec
-
+```
+bundle exec rspec
+```
 
 ## Alternatives
 
