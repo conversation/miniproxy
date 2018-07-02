@@ -1,4 +1,3 @@
-require "miniproxy/config"
 require "miniproxy/stub/request"
 require "miniproxy/stub/response"
 require "miniproxy/proxy_server"
@@ -39,7 +38,6 @@ module MiniProxy
             fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
             fake_server = FakeSSLServer.new(
               Port: fake_server_port,
-              MiniproxyConfig: remote.config,
               MockHandlerCallback: remote.method(:handler),
             )
             Thread.new { fake_server.start }
@@ -52,7 +50,6 @@ module MiniProxy
             proxy = MiniProxy::ProxyServer.new(
               Port: remote.port,
               FakeServerPort: fake_server_port,
-              MiniproxyConfig: remote.config,
               MockHandlerCallback: remote.method(:handler),
             )
             Thread.new { proxy.start }
@@ -71,34 +68,17 @@ module MiniProxy
       @unix_socket_uri
     end
 
-    def get_config(k)
-      @miniproxy_config[k]
-    end
-
-    def set_config(k, v)
-      @miniproxy_config[k] = v
-    end
-
-    def config
-      @miniproxy_config
-    end
-
     def handler(req, res)
       if (request = @stubs.detect { |mock_request| mock_request.match?(req) })
         response = request.response
         res.status = response.code
         response.headers.each { |key, value| res[key] = value }
         res.body = response.body
-        true
-
       else
-        unless @miniproxy_config.allow_external_requests
-          res.status = 200
-          res.body = ""
-          queue_message "WARN: external request to #{req.host}#{req.path} not mocked"
-          queue_message %Q{Stub with: MiniProxy.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
-        end
-        false
+        res.status = 200
+        res.body = ""
+        queue_message "WARN: external request to #{req.host}#{req.path} not mocked"
+        queue_message %Q{Stub with: MiniProxy.stub_request(method: "#{req.request_method}", url: "#{req.host}#{req.path}")}
       end
     end
 
@@ -142,9 +122,6 @@ module MiniProxy
     def initialize
       @stubs = []
       @messages = []
-      @miniproxy_config = Config.new.tap do |c|
-        c.allow_external_requests = false
-      end
     end
   end
 end

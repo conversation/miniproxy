@@ -58,14 +58,9 @@ MiniProxy.stub_request(method: "POST", url: /example.com/, response: {
 })
 ```
 
-To allow unstubbed requests to hit external servers:
-
-```ruby
-MiniProxy.allow_external_requests = true
-```
-
 The default behaviour is to block the request, display a warning and return an empty 200 response.
 
+To allow unstubbed requests to hit external servers, you can use a driver configured without using MiniProxy as a proxy server. However, this is not recommended as you will almost certainly have unreliable tests.
 
 ## Developing
 
