@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/conversation/miniproxy'
   s.license = 'MIT'
 
-  s.files = `git ls-files -- lib/*`.split("\n")
+  s.files = `git ls-files -- lib/* ssl/*`.split("\n")
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'capybara'
