@@ -8,8 +8,6 @@ module MiniProxy
     ALLOWED_HOSTS = ["127.0.0.1", "localhost"].freeze
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
-      @miniproxy_config = config[:MiniproxyConfig]
-
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging
         AccessLog: [], # silence logging
@@ -26,10 +24,7 @@ module MiniProxy
       if ALLOWED_HOSTS.include?(req.host)
         super(req, res)
       else
-        handled = self.config[:MockHandlerCallback].call(req, res)
-
-        # If we have no stub and we're allowing external requests, hit the internet
-        super(req, res) if !handled && @miniproxy_config.allow_external_requests
+        self.config[:MockHandlerCallback].call(req, res)
       end
     end
 

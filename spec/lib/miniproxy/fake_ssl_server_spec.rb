@@ -6,7 +6,6 @@ RSpec.describe MiniProxy::FakeSSLServer do
       MiniProxy::FakeSSLServer.new(
         Port: (12345..32768).to_a.sample,
         MockHandlerCallback: handler,
-        MiniproxyConfig: double(allow_external_requests: false)
       )
     }
     let(:res) { MiniProxy::Stub::Response.new(headers: [], body: "") }
