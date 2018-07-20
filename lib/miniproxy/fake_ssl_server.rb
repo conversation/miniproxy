@@ -5,9 +5,9 @@ module MiniProxy
   # MiniProxy fake SSL enabled server, which receives relayed requests from the ProxyServer
   #
   class FakeSSLServer < WEBrick::HTTPServer
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"].freeze
-
     def initialize(config = {}, default = WEBrick::Config::HTTP)
+      @allowed_hosts = ["127.0.0.1", "localhost", config[:MiniProxyHost]].compact
+
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging
         AccessLog: [], # silence logging
@@ -21,7 +21,7 @@ module MiniProxy
     end
 
     def service(req, res)
-      if ALLOWED_HOSTS.include?(req.host)
+      if @allowed_hosts.include?(req.host)
         super(req, res)
       else
         self.config[:MockHandlerCallback].call(req, res)

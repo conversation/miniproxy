@@ -18,7 +18,11 @@ module MiniProxy
   end
 
   def self.host
-    "127.0.0.1"
+    @host || "127.0.0.1"
+  end
+
+  def self.host=(host)
+    @host = host
   end
 
   def self.ignore_all_requests
@@ -36,7 +40,7 @@ module MiniProxy
   private_class_method def self.remote
     Timeout.timeout(DRB_SERVICE_TIMEOUT) do
       begin
-        remote = DRbObject.new(nil, Remote.server)
+        remote = DRbObject.new(nil, Remote.server(self.host))
 
         until remote.started?
           sleep 0.01
