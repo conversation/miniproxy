@@ -4,11 +4,11 @@ module MiniProxy
   # MiniProxy server, which boots a WEBrick proxy server
   #
   class ProxyServer < WEBrick::HTTPProxyServer
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"].freeze
-
     attr_accessor :requests
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
+      @allowed_hosts = ["127.0.0.1", "localhost"]
+
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging
         AccessLog: [], # silence logging
@@ -36,7 +36,7 @@ module MiniProxy
     end
 
     def service(req, res)
-      if ALLOWED_HOSTS.include?(req.host)
+      if @allowed_hosts.include?(req.host)
         super(req, res)
       else
         if req.request_method == "CONNECT"
