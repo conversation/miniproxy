@@ -7,7 +7,7 @@ module MiniProxy
     attr_accessor :requests
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
-      @allowed_hosts = ["127.0.0.1", "localhost"]
+      @allowed_hosts = ["127.0.0.1", "localhost", config[:MiniProxyHost]].compact
 
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging

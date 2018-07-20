@@ -2,8 +2,10 @@ require "miniproxy/proxy_server"
 
 RSpec.describe MiniProxy::ProxyServer do
   describe "#service" do
+    let(:host) { "123.45.65.43" }
     let(:proxy_server) {
       MiniProxy::ProxyServer.new(
+        MiniProxyHost: host,
         Port: (12345..32768).to_a.sample,
         FakeServerPort: 33333,
         MockHandlerCallback: handler,
@@ -14,7 +16,7 @@ RSpec.describe MiniProxy::ProxyServer do
     let(:handler) { double(:handler) }
 
     describe "requests to localhost" do
-      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "GET", unparsed_uri: "http://localhost/", host: "localhost") }
+      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "GET", unparsed_uri: "http://#{host}/", host: host) }
 
       it "performs the request" do
         expect(proxy_server).to receive(:proxy_service).with(req, res)

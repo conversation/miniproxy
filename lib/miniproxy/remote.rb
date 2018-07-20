@@ -20,7 +20,7 @@ module MiniProxy
       false
     end
 
-    def self.server
+    def self.server(host = "127.0.0.1")
       @unix_socket_uri ||= begin
         tempfile = Tempfile.new("mini_proxy")
         socket_path = tempfile.path
@@ -37,6 +37,7 @@ module MiniProxy
           begin
             fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
             fake_server = FakeSSLServer.new(
+              MiniProxyHost: host,
               Port: fake_server_port,
               MockHandlerCallback: remote.method(:handler),
             )
@@ -48,6 +49,7 @@ module MiniProxy
           begin
             remote.port = ENV["MINI_PROXY_PORT"] || SERVER_DYNAMIC_PORT_RANGE.sample
             proxy = MiniProxy::ProxyServer.new(
+              MiniProxyHost: host,
               Port: remote.port,
               FakeServerPort: fake_server_port,
               MockHandlerCallback: remote.method(:handler),
