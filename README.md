@@ -62,6 +62,18 @@ The default behaviour is to block the request, display a warning and return an e
 
 To allow unstubbed requests to hit external servers, you can use a driver configured without using MiniProxy as a proxy server. However, this is not recommended as you will almost certainly have unreliable tests.
 
+## Allowed Hosts
+
+MiniProxy allows requests from the `127.0.0.1` and `localhost` by default.
+
+If your test suite runs at a different address, you can configure a custom host using the `MiniProxy.host` option. Example:
+
+```ruby
+MiniProxy.host = "95.124.236.242"
+```
+
+With this configuration, MiniProxy will allow all requests coming from the configured host.
+
 ## Developing
 
 Pull requests are welcome, we try our best to stick with [semver](https://semver.org/), avoid breaking changes to the API whenever possible.
