@@ -40,9 +40,14 @@ module MiniProxy
         super(req, res)
       else
         if req.request_method == "CONNECT"
+          is_ssl = req.unparsed_uri.include?(":443")
+
           # If something is trying to initiate an SSL connection, rewrite
-          # the URI to point to our fake server.
-          req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
+          # the URI to point to our fake server so we can stub SSL requests.
+          if is_ssl
+            req.instance_variable_set(:@unparsed_uri, "localhost:#{self.config[:FakeServerPort]}")
+          end
+
           super(req, res)
         else
           # Otherwise, call our handler to respond with an appropriate
