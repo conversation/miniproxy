@@ -24,14 +24,30 @@ RSpec.describe MiniProxy::ProxyServer do
       end
     end
 
-    describe "SSL requests" do
-      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "https://example.com/", host: "example.com") }
+    describe "SSL CONNECT requests" do
+      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "https://example.com:443", host: "example.com") }
       let(:req_unparsed_uri) { req.instance_variable_get(:@unparsed_uri) }
 
       it "rewrites the request to point to our fake SSL server" do
         allow(proxy_server).to receive(:do_CONNECT)
         proxy_server.service(req, res)
         expect(req_unparsed_uri).to eq "localhost:33333"
+      end
+
+      it "performs the request" do
+        expect(proxy_server).to receive(:do_CONNECT).with(req, res)
+        proxy_server.service(req, res)
+      end
+    end
+
+    describe "non-SSL CONNECT requests" do
+      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "example.com:1234", host: "example.com") }
+      let(:req_unparsed_uri) { req.instance_variable_get(:@unparsed_uri) }
+
+      it "does not rewrite the request to point to our fake SSL server" do
+        allow(proxy_server).to receive(:do_CONNECT)
+        proxy_server.service(req, res)
+        expect(req_unparsed_uri).to eq nil
       end
 
       it "performs the request" do
