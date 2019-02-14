@@ -3,7 +3,7 @@ require "timeout"
 require "miniproxy/remote"
 
 module MiniProxy
-  DRB_SERVICE_TIMEOUT = 5
+  DEFAULT_DRB_SERVICE_TIMEOUT = 5
 
   def self.reset
     remote.clear
@@ -25,6 +25,14 @@ module MiniProxy
     @host = host
   end
 
+  def self.drb_timeout
+    @drb_timeout || DEFAULT_DRB_SERVICE_TIMEOUT
+  end
+
+  def self.drb_timeout=(drb_timeout)
+    @drb_timeout = drb_timeout
+  end
+
   def self.ignore_all_requests
     reset
 
@@ -38,7 +46,7 @@ module MiniProxy
   end
 
   private_class_method def self.remote
-    Timeout.timeout(DRB_SERVICE_TIMEOUT) do
+    Timeout.timeout(self.drb_timeout) do
       begin
         remote = DRbObject.new(nil, Remote.server(self.host))
 
