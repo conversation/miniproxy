@@ -12,6 +12,7 @@ module MiniProxy
       config = config.merge({
         Logger: WEBrick::Log.new(nil, 0), # silence logging
         AccessLog: [], # silence logging
+        OutputBufferSize: MiniProxy.output_buffer_size,
       })
 
       super(config, default)

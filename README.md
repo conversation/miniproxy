@@ -102,3 +102,7 @@ bundle exec rspec
 
 - [Puffing Billy](https://github.com/oesmith/puffing-billy) - MiniProxy's more capable and more complex cousin
 - [EvilProxy](https://github.com/bbtfr/evil-proxy) - Lighter weight than Puffing Billy, with a focus on HTTPS MITM support
+
+
+
+(WIP) ADD DOCS FOR CONFIGURABLE OUTPUT BUFFER SIZE

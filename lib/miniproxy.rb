@@ -25,6 +25,16 @@ module MiniProxy
     @host = host
   end
 
+  # @return [Fixnum]
+  def self.output_buffer_size
+    @output_buffer_size || WEBrick::Config::HTTP[:OutputBufferSize]
+  end
+
+  # @param [Fixnum] size
+  def self.output_buffer_size=(size)
+    @output_buffer_size = size
+  end
+
   def self.ignore_all_requests
     reset
 
