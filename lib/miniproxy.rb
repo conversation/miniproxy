@@ -37,6 +37,10 @@ module MiniProxy
     remote.stub_request(method: method, url: url, response: response)
   end
 
+  def self.allow_request(method:, url:)
+    remote.allow_request(method: method, url: url)
+  end
+
   private_class_method def self.remote
     Timeout.timeout(DRB_SERVICE_TIMEOUT) do
       begin

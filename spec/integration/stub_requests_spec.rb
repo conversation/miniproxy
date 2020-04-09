@@ -30,6 +30,17 @@ RSpec.describe "miniproxy" do
         }.to output(/WARN/).to_stdout_from_any_process
       end
     end
+
+    context "allowed" do
+      it "proxies the request" do
+        MiniProxy.allow_request(method: "GET", url: /example.com/)
+
+        session.visit("http://example.com")
+        MiniProxy.reset
+
+        expect(session).to have_content("Example Domain")
+      end
+    end
   end
 
   describe "https request" do
@@ -51,9 +62,20 @@ RSpec.describe "miniproxy" do
     context "not stubbed" do
       it "intercepts the request and prints a warning to stdout" do
         expect {
-          session.visit("http://example.com")
+          session.visit("https://example.com")
           MiniProxy.reset
         }.to output(/WARN/).to_stdout_from_any_process
+      end
+    end
+
+    context "allowed" do
+      it "proxies the request" do
+        MiniProxy.allow_request(method: "GET", url: /example.com/)
+
+        session.visit("https://example.com/")
+        MiniProxy.reset
+
+        expect(session).to have_content("Example Domain")
       end
     end
   end

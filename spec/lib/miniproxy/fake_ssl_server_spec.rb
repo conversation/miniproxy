@@ -2,10 +2,10 @@ require "miniproxy/fake_ssl_server"
 
 RSpec.describe MiniProxy::FakeSSLServer do
   describe "#service" do
-    let(:host) { "123.45.65.43" }
+    let(:allowed_request_check) { ->(req) { false } }
     let(:fake_ssl_server) {
       MiniProxy::FakeSSLServer.new(
-        MiniProxyHost: host,
+        AllowedRequestCheck: allowed_request_check,
         Port: (12345..32768).to_a.sample,
         MockHandlerCallback: handler,
       )
@@ -13,8 +13,9 @@ RSpec.describe MiniProxy::FakeSSLServer do
     let(:res) { MiniProxy::Stub::Response.new(headers: [], body: "") }
     let(:handler) { double(:handler) }
 
-    describe "requests to localhost" do
-      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "https://#{host}/", host: host, path: "/") }
+    describe "when the request is allowed" do
+      let(:allowed_request_check) { ->(req) { true } }
+      let(:req) { instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "https://localhost/", host: "localhost", path: "/") }
       let(:servlet) { double(:servlet, get_instance: servlet_instance) }
       let(:servlet_instance) { double(:servlet_instance) }
 
