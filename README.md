@@ -74,6 +74,14 @@ MiniProxy.host = "95.124.236.242"
 
 With this configuration, MiniProxy will allow all requests coming from the configured host.
 
+You also can permit specific requests to pass through the proxy:
+
+```ruby
+MiniProxy.allow_request(method: "GET", url: /example.com/)
+```
+
+This implicitly allows CONNECT requests for 'example.com' to permit HTTPS.
+
 ## Developing
 
 Pull requests are welcome, we try our best to stick with [semver](https://semver.org/), avoid breaking changes to the API whenever possible.

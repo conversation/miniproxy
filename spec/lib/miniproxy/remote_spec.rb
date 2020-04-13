@@ -1,7 +1,7 @@
 require "miniproxy/remote"
 
 describe MiniProxy::Remote do
-  let(:remote) { MiniProxy::Remote.new }
+  let(:remote) { MiniProxy::Remote.new("127.0.0.1") }
 
   describe "#handler" do
     context "when the request has not been mocked" do

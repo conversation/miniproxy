@@ -30,5 +30,19 @@ RSpec.describe MiniProxy::Stub::Request do
         end
       end
     end
+
+    context "CONNECT requests" do
+      it "returns true when it matches the host" do
+        http_request = instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "google.com:443") 
+
+        expect(request.match?(http_request)).to eq(true)
+      end
+
+      it "returns false when it does not match the host" do
+        http_request = instance_double(WEBrick::HTTPRequest, request_method: "CONNECT", unparsed_uri: "example.com:443") 
+
+        expect(request.match?(http_request)).to eq(false)
+      end
+    end
   end
 end

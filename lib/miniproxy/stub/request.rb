@@ -16,8 +16,13 @@ module MiniProxy
 
       # @param [WEBrick::HTTPRequest] http_request
       def match?(http_request)
-        request_uri = http_request.host + http_request.path
-        http_request.request_method == @method && request_uri.match?(@url)
+        if http_request.request_method == "CONNECT"
+          host = http_request.unparsed_uri.split(":").first
+          @url.match?(host)
+        else
+          request_uri = http_request.host + http_request.path
+          http_request.request_method == @method && request_uri.match?(@url)
+        end
       end
     end
   end

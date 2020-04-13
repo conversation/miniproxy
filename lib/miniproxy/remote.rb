@@ -31,13 +31,13 @@ module MiniProxy
       return @unix_socket_uri if drb_process_alive?
 
       @pid = fork do
-        remote = Remote.new
+        remote = Remote.new(host)
 
         Timeout.timeout(SERVER_START_TIMEOUT) do
           begin
             fake_server_port = SERVER_DYNAMIC_PORT_RANGE.sample
             fake_server = FakeSSLServer.new(
-              MiniProxyHost: host,
+              AllowedRequestCheck: remote.method(:allowed_request?),
               Port: fake_server_port,
               MockHandlerCallback: remote.method(:handler),
             )
@@ -49,7 +49,7 @@ module MiniProxy
           begin
             remote.port = ENV["MINI_PROXY_PORT"] || SERVER_DYNAMIC_PORT_RANGE.sample
             proxy = MiniProxy::ProxyServer.new(
-              MiniProxyHost: host,
+              AllowedRequestCheck: remote.method(:allowed_request?),
               Port: remote.port,
               FakeServerPort: fake_server_port,
               MockHandlerCallback: remote.method(:handler),
@@ -90,6 +90,16 @@ module MiniProxy
       @stubs.push(request)
     end
 
+    def allow_request(method:, url:)
+      @allowed_requests.push(MiniProxy::Stub::Request.new(method: method, url: url, response: nil))
+    end
+
+    def allowed_request?(req)
+      return true if ["127.0.0.1", "localhost", @host].include?(req.host)
+
+      @allowed_requests.any? { |allowed_request| allowed_request.match?(req) }
+    end
+
     def port
       @port
     end
@@ -104,6 +114,7 @@ module MiniProxy
 
     def clear
       @stubs.clear
+      @allowed_requests.clear
     end
 
     def drain_messages
@@ -121,9 +132,11 @@ module MiniProxy
       @messages.push msg
     end
 
-    def initialize
+    def initialize(host)
+      @host = host
       @stubs = []
       @messages = []
+      @allowed_requests = []
     end
   end
 end
