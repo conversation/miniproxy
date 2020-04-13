@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Feature: allow specific requests to pass through the proxy (#34)
+
 ## 0.4.0
 
 - Feature: Support Websocket connection upgrade passthrough (#28)
