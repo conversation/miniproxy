@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- Fix functionality in Ruby 2.6+
+- Drop support for Ruby 2.4
+
 ## 0.5.0
 
 - Feature: allow specific requests to pass through the proxy (#34)
