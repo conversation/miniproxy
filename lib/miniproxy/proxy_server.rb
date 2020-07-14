@@ -15,21 +15,35 @@ module MiniProxy
       super(config, default)
     end
 
-    def do_PUT(req, res)
-      perform_proxy_request(req, res) do |http, path, header|
-        http.put(path, req.body || "", header)
+    if RUBY_VERSION < "2.6.0"
+      def do_PUT(req, res)
+        perform_proxy_request(req, res) do |http, path, header|
+          http.put(path, req.body || "", header)
+        end
       end
-    end
 
-    def do_DELETE(req, res)
-      perform_proxy_request(req, res) do |http, path, header|
-        http.delete(path, header)
+      def do_DELETE(req, res)
+        perform_proxy_request(req, res) do |http, path, header|
+          http.delete(path, header)
+        end
       end
-    end
 
-    def do_PATCH(req, res)
-      perform_proxy_request(req, res) do |http, path, header|
-        http.patch(path, req.body || "", header)
+      def do_PATCH(req, res)
+        perform_proxy_request(req, res) do |http, path, header|
+          http.patch(path, req.body || "", header)
+        end
+      end
+    else
+      def do_PUT(req, res)
+        perform_proxy_request(req, res, Net::HTTP::Put, req.body_reader)
+      end
+
+      def do_DELETE(req, res)
+        perform_proxy_request(req, res, Net::HTTP::Delete)
+      end
+
+      def do_PATCH(req, res)
+        perform_proxy_request(req, res, Net::HTTP::Patch, req.body_reader)
       end
     end
 

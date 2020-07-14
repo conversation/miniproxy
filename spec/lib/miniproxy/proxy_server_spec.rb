@@ -1,4 +1,5 @@
 require "miniproxy/proxy_server"
+require "support/server"
 
 RSpec.describe MiniProxy::ProxyServer do
   describe "#service" do
@@ -64,6 +65,56 @@ RSpec.describe MiniProxy::ProxyServer do
         it "calls the mock handler" do
           expect(handler).to receive(:call).with(req, res)
           proxy_server.service(req, res)
+        end
+      end
+    end
+  end
+
+  describe "passing through requests" do
+    it "suports GET requests" do
+      with_proxied_echo_server do |http|
+        req = Net::HTTP::Get.new("/")
+        http.request(req) do |res|
+          expect(res.body).to eq("GET / ")
+        end
+      end
+    end
+
+    it "suports POST requests" do
+      with_proxied_echo_server do |http|
+        req = Net::HTTP::Post.new("/")
+        req.body = "post-data"
+        http.request(req) do |res|
+          expect(res.body).to eq("POST / post-data")
+        end
+      end
+    end
+
+    it "suports PUT requests" do
+      with_proxied_echo_server do |http|
+        req = Net::HTTP::Put.new("/")
+        req.body = "put-data"
+        http.request(req) do |res|
+          expect(res.body).to eq("PUT / put-data")
+        end
+      end
+    end
+
+    it "suports PATCH requests" do
+      with_proxied_echo_server do |http|
+        req = Net::HTTP::Patch.new("/")
+        req.body = "patch-data"
+        http.request(req) do |res|
+          expect(res.body).to eq("PATCH / patch-data")
+        end
+      end
+    end
+
+    it "suports DELETE requests" do
+      with_proxied_echo_server do |http|
+        req = Net::HTTP::Delete.new("/")
+        http.request(req) do |res|
+          expect(res.body).to eq("DELETE / ")
         end
       end
     end
