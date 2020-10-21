@@ -15,6 +15,7 @@ module MiniProxy
       super(config, default)
     end
 
+    puts "RUBY_VERSION= #{RUBY_VERSION} | < 2.6.0 = #{RUBY_VERSION < "2.6.0"}"
     if RUBY_VERSION < "2.6.0"
       def do_PUT(req, res)
         perform_proxy_request(req, res) do |http, path, header|
@@ -48,6 +49,7 @@ module MiniProxy
     end
 
     def service(req, res)
+      puts "miniproxy#service #{req.request_method} #{req.unparsed_uri}"
       if self.config[:AllowedRequestCheck].call(req)
         super(req, res)
       else
