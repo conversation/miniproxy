@@ -118,5 +118,43 @@ RSpec.describe MiniProxy::ProxyServer do
         end
       end
     end
+
+    if RUBY_VERSION >= "2.6.0"
+      describe "compatibility with webmock" do
+        let(:proxy_server) {
+          MiniProxy::ProxyServer.new(
+            AllowedRequestCheck: ->(req) { false },
+            Port: (12345..32768).to_a.sample,
+            FakeServerPort: 33333,
+            MockHandlerCallback: double(:handler),
+            MiniproxyConfig: double(allow_external_requests: false)
+          )
+        }
+        let(:res) { MiniProxy::Stub::Response.new(headers: [], body: "") }
+        let(:req) do
+          WEBrick::HTTPRequest.new(WEBrick::Config::HTTP).tap do |req|
+            req.parse(StringIO.new(http_request))
+          end
+        end
+        let(:http_request) do
+          <<~HTTP
+            POST / HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            Content-Length: 2
+
+            {}
+          HTTP
+        end
+
+        it "provides the POST body as a read-able stream" do
+          expect(proxy_server).to receive(:perform_proxy_request) do |req, res, req_class, body_stream|
+            expect(body_stream).to respond_to :read
+          end
+
+          proxy_server.do_POST(req, res)
+        end
+      end
+    end
   end
 end
