@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- Fix pass-through of POST requests (#39)
+
 ## 0.6.0
 
 - Fix functionality in Ruby 2.6+
