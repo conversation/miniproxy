@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
 
   s.files = `git ls-files -- lib/* ssl/*`.split("\n")
 
-  s.add_development_dependency 'rspec'
-  s.add_development_dependency 'capybara'
-  s.add_development_dependency 'selenium-webdriver'
+  s.add_development_dependency 'rspec', '~> 3'
+  s.add_development_dependency 'capybara', '~> 3.36'
+  s.add_development_dependency 'selenium-webdriver', '~> 3.142'
 end
