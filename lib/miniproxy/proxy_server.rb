@@ -34,10 +34,6 @@ module MiniProxy
         end
       end
     else
-      def do_POST(req, res)
-        perform_proxy_request(req, res, Net::HTTP::Post, StringIO.new(req.body))
-      end
-
       def do_PUT(req, res)
         perform_proxy_request(req, res, Net::HTTP::Put, req.body_reader)
       end
