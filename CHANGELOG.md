@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+
+- Add support for Ruby 3.0, 3.1
+- Drop support for Ruby 2.5, 2.6
+
 ## 0.7.0
 
 - Fix pass-through of POST requests (#39)
