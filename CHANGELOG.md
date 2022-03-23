@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+
+- Revert: Fix pass-through of POST requests (#43)
+
 ## 0.8.0
 
 - Add support for Ruby 3.0, 3.1
