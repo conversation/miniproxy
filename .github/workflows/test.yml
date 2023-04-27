@@ -11,7 +11,7 @@ jobs:
         ruby-version: ['3.0', '3.1', '3.2']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.5.2
 
       - uses: browser-actions/setup-firefox@latest
         with:
