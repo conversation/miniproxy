@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+
+- Breaking change: drop support for Ruby 2.7. `miniproxy` now only supports Ruby 3.x (#44)
+
 ## 0.9.0
 
 - Revert: Fix pass-through of POST requests (#43)
