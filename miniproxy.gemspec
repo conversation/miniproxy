@@ -14,7 +14,10 @@ Gem::Specification.new do |s|
 
   s.files = `git ls-files -- lib/* ssl/*`.split("\n")
 
+  s.required_ruby_version = Gem::Requirement.new('>= 3.2', '< 4')
+
   s.add_runtime_dependency 'webrick', '~> 1'
+  s.add_runtime_dependency 'drb', '~> 2'
 
   s.add_development_dependency 'rspec', '~> 3'
   s.add_development_dependency 'capybara', '~> 3'
