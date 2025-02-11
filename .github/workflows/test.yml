@@ -15,7 +15,7 @@ jobs:
 
       - uses: browser-actions/setup-firefox@latest
         with:
-          firefox-version: '112.0'
+          firefox-version: '135.0'
 
       - name: Set up geckodriver
         run: |
@@ -24,7 +24,7 @@ jobs:
           tar -xzf geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz -C geckodriver
           echo "$PWD/geckodriver" >> $GITHUB_PATH
         env:
-          GECKODRIVER_VERSION: 0.33.0
+          GECKODRIVER_VERSION: 0.35.0
 
       - name: Set up Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
