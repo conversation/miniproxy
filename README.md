@@ -4,7 +4,7 @@ A small stubbable proxy server for testing HTTP(S) interactions.
 
 ## Supported Versions
 
-* Ruby 3.0, 3.1, 3.2
+* Ruby 3.2, 3.4, 3.4
 
 ## Getting Started
 
